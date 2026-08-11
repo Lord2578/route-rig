@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FlatList, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import type { GeocodeResult } from '../api/geocode';
@@ -7,12 +7,21 @@ import { useAddressSearch } from '../hooks/use-address-search';
 type Props = {
   placeholder: string;
   onSelect: (result: GeocodeResult) => void;
+  initialValue?: string;
 };
 
-export const AddressSearchInput = ({ placeholder, onSelect }: Props) => {
-  const [query, setQuery] = useState('');
+export const AddressSearchInput = ({ placeholder, onSelect, initialValue }: Props) => {
+  const [query, setQuery] = useState(initialValue ?? '');
   const [showResults, setShowResults] = useState(false);
   const { data: results, isLoading } = useAddressSearch(query);
+
+  // Reflects a value set programmatically by the parent (e.g. "current location"
+  // as the default origin) without clobbering text the user is actively typing.
+  useEffect(() => {
+    if (initialValue && !showResults) {
+      setQuery(initialValue);
+    }
+  }, [initialValue]);
 
   const handleSelect = (result: GeocodeResult) => {
     setQuery(result.label);
