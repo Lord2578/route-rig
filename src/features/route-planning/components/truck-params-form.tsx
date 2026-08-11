@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 
+import { AppTextInput } from '../../../shared/components/app-text-input';
 import type { TruckRestrictions } from '../api/directions';
 
 type Props = {
@@ -26,26 +27,23 @@ export const TruckParamsForm = ({ onSubmit, disabled, initialRestrictions }: Pro
 
   return (
     <View className="flex-row gap-2">
-      <TextInput
-        className="flex-1 rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white"
+      <AppTextInput
+        className="flex-1"
         placeholder="Height (m)"
-        placeholderTextColor="#9CA3AF"
         keyboardType="decimal-pad"
         value={height}
         onChangeText={setHeight}
       />
-      <TextInput
-        className="flex-1 rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white"
+      <AppTextInput
+        className="flex-1"
         placeholder="Weight (t)"
-        placeholderTextColor="#9CA3AF"
         keyboardType="decimal-pad"
         value={weight}
         onChangeText={setWeight}
       />
-      <TextInput
-        className="flex-1 rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white"
+      <AppTextInput
+        className="flex-1"
         placeholder="Length (m)"
-        placeholderTextColor="#9CA3AF"
         keyboardType="decimal-pad"
         value={length}
         onChangeText={setLength}

@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
-import { FlatList, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { memo, useCallback, useEffect, useState } from 'react';
+import { FlatList, Text, TouchableOpacity, View } from 'react-native';
 
+import { AppTextInput } from '../../../shared/components/app-text-input';
 import type { GeocodeResult } from '../api/geocode';
 import { useAddressSearch } from '../hooks/use-address-search';
 
@@ -10,31 +11,43 @@ type Props = {
   initialValue?: string;
 };
 
+type ResultItemProps = {
+  item: GeocodeResult;
+  onPress: (item: GeocodeResult) => void;
+};
+
+const ResultItem = memo(function ResultItem({ item, onPress }: ResultItemProps) {
+  return (
+    <TouchableOpacity className="border-b border-gray-700 px-3 py-2" onPress={() => onPress(item)}>
+      <Text className="text-white">{item.label}</Text>
+    </TouchableOpacity>
+  );
+});
+
 export const AddressSearchInput = ({ placeholder, onSelect, initialValue }: Props) => {
   const [query, setQuery] = useState(initialValue ?? '');
   const [showResults, setShowResults] = useState(false);
   const { data: results, isLoading } = useAddressSearch(query);
 
-  // Reflects a value set programmatically by the parent (e.g. "current location"
-  // as the default origin) without clobbering text the user is actively typing.
   useEffect(() => {
     if (initialValue && !showResults) {
       setQuery(initialValue);
     }
   }, [initialValue]);
 
-  const handleSelect = (result: GeocodeResult) => {
-    setQuery(result.label);
-    setShowResults(false);
-    onSelect(result);
-  };
+  const handleSelect = useCallback(
+    (result: GeocodeResult) => {
+      setQuery(result.label);
+      setShowResults(false);
+      onSelect(result);
+    },
+    [onSelect]
+  );
 
   return (
     <View>
-      <TextInput
-        className="rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white"
+      <AppTextInput
         placeholder={placeholder}
-        placeholderTextColor="#9CA3AF"
         value={query}
         onChangeText={(text) => {
           setQuery(text);
@@ -48,14 +61,7 @@ export const AddressSearchInput = ({ placeholder, onSelect, initialValue }: Prop
           data={results}
           keyExtractor={(item, index) => `${item.label}-${index}`}
           keyboardShouldPersistTaps="handled"
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              className="border-b border-gray-700 px-3 py-2"
-              onPress={() => handleSelect(item)}
-            >
-              <Text className="text-white">{item.label}</Text>
-            </TouchableOpacity>
-          )}
+          renderItem={({ item }) => <ResultItem item={item} onPress={handleSelect} />}
         />
       )}
     </View>

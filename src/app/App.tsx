@@ -1,6 +1,7 @@
 import '../../global.css';
 import './notifications-setup';
 
+import { FloatingDevTools } from '@buoy-gg/core';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -14,6 +15,7 @@ export default function App() {
       <QueryClientProvider client={queryClient}>
         <RootNavigator />
         <StatusBar style="light" />
+        {__DEV__ && <FloatingDevTools />}
       </QueryClientProvider>
     </SafeAreaProvider>
   );
