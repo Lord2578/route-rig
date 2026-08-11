@@ -25,29 +25,24 @@ export const TruckParamsForm = ({ onSubmit, disabled, initialRestrictions }: Pro
 
   const isValid = Number(height) > 0 && Number(weight) > 0 && Number(length) > 0;
 
+  const fields = [
+    { key: 'height', placeholder: 'Height (m)', value: height, onChangeText: setHeight },
+    { key: 'weight', placeholder: 'Weight (t)', value: weight, onChangeText: setWeight },
+    { key: 'length', placeholder: 'Length (m)', value: length, onChangeText: setLength },
+  ];
+
   return (
     <View className="flex-row gap-2">
-      <AppTextInput
-        className="flex-1"
-        placeholder="Height (m)"
-        keyboardType="decimal-pad"
-        value={height}
-        onChangeText={setHeight}
-      />
-      <AppTextInput
-        className="flex-1"
-        placeholder="Weight (t)"
-        keyboardType="decimal-pad"
-        value={weight}
-        onChangeText={setWeight}
-      />
-      <AppTextInput
-        className="flex-1"
-        placeholder="Length (m)"
-        keyboardType="decimal-pad"
-        value={length}
-        onChangeText={setLength}
-      />
+      {fields.map((field) => (
+        <AppTextInput
+          key={field.key}
+          className="flex-1"
+          placeholder={field.placeholder}
+          keyboardType="decimal-pad"
+          value={field.value}
+          onChangeText={field.onChangeText}
+        />
+      ))}
       <TouchableOpacity
         className="items-center justify-center rounded-lg bg-blue-600 px-4 py-2 disabled:opacity-40"
         disabled={!isValid || disabled}

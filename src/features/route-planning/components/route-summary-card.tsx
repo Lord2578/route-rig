@@ -1,14 +1,20 @@
-import type { UseQueryResult } from '@tanstack/react-query';
+import { memo } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 
+import { ROUTE_TYPE_COLOR } from '../../../shared/constants/route-colors';
 import { formatDistance, formatDuration } from '../../../shared/utils/format';
 import type { RouteResult, TruckRestrictions } from '../api/directions';
 
 type RouteType = 'truck' | 'car';
 
+type RouteState = {
+  data?: RouteResult;
+  error?: unknown;
+};
+
 type Props = {
-  truckRoute: UseQueryResult<RouteResult>;
-  carRoute: UseQueryResult<RouteResult>;
+  truckRoute: RouteState;
+  carRoute: RouteState;
   selectedRouteType: RouteType;
   onSelectRouteType: (type: RouteType) => void;
   restrictions: TruckRestrictions | null;
@@ -16,95 +22,78 @@ type Props = {
   isSaved?: boolean;
 };
 
-const ACCENT_COLOR: Record<RouteType, string> = {
-  truck: '#3B82F6',
-  car: '#FB923C',
+const ROUTE_OPTIONS: { type: RouteType; label: string; activeClassName: string }[] = [
+  { type: 'truck', label: 'Truck', activeClassName: 'bg-blue-600' },
+  { type: 'car', label: 'Car', activeClassName: 'bg-orange-500' },
+];
+
+const ERROR_FALLBACK: Record<RouteType, string> = {
+  truck: 'Could not find a truck route.',
+  car: 'Could not find a car route.',
 };
 
-export const RouteSummaryCard = ({
-  truckRoute,
-  carRoute,
-  selectedRouteType,
-  onSelectRouteType,
-  restrictions,
-  onSave,
-  isSaved,
-}: Props) => {
-  const hasContent = truckRoute.data || carRoute.data || truckRoute.error || carRoute.error;
-  if (!hasContent) {
-    return null;
-  }
+const errorMessage = (error: unknown, fallback: string) =>
+  error instanceof Error ? error.message : fallback;
 
-  const selectedRoute = selectedRouteType === 'truck' ? truckRoute : carRoute;
+export const RouteSummaryCard = memo(
+  ({ truckRoute, carRoute, selectedRouteType, onSelectRouteType, restrictions, onSave, isSaved }: Props) => {
+    const routes: Record<RouteType, RouteState> = { truck: truckRoute, car: carRoute };
+    const hasContent = truckRoute.data || carRoute.data || truckRoute.error || carRoute.error;
+    if (!hasContent) {
+      return null;
+    }
 
-  return (
-    <View className="gap-3 rounded-xl border border-gray-700 bg-gray-800 p-3 shadow-md android:[elevation:4]">
-      <View className="flex-row gap-2">
-        {truckRoute.data && (
-          <TouchableOpacity
-            className={`flex-1 items-center rounded-lg py-2 ${
-              selectedRouteType === 'truck' ? 'bg-blue-600' : 'border border-gray-600 bg-gray-800'
-            }`}
-            onPress={() => onSelectRouteType('truck')}
-          >
-            <Text
-              className={`text-xs font-semibold ${
-                selectedRouteType === 'truck' ? 'text-white' : 'text-gray-400'
+    const selectedRoute = routes[selectedRouteType];
+
+    return (
+      <View className="gap-3 rounded-xl border border-gray-700 bg-gray-800 p-3 shadow-md android:[elevation:4]">
+        <View className="flex-row gap-2">
+          {ROUTE_OPTIONS.filter((option) => routes[option.type].data).map((option) => (
+            <TouchableOpacity
+              key={option.type}
+              className={`flex-1 items-center rounded-lg py-2 ${
+                selectedRouteType === option.type ? option.activeClassName : 'border border-gray-600 bg-gray-800'
               }`}
+              onPress={() => onSelectRouteType(option.type)}
             >
-              Truck
-            </Text>
-          </TouchableOpacity>
-        )}
-        {carRoute.data && (
-          <TouchableOpacity
-            className={`flex-1 items-center rounded-lg py-2 ${
-              selectedRouteType === 'car' ? 'bg-orange-500' : 'border border-gray-600 bg-gray-800'
-            }`}
-            onPress={() => onSelectRouteType('car')}
-          >
-            <Text
-              className={`text-xs font-semibold ${
-                selectedRouteType === 'car' ? 'text-white' : 'text-gray-400'
-              }`}
-            >
-              Car
-            </Text>
-          </TouchableOpacity>
-        )}
-      </View>
-
-      {selectedRoute.data && (
-        <View className="gap-1">
-          <Text className="text-2xl font-bold" style={{ color: ACCENT_COLOR[selectedRouteType] }}>
-            {formatDistance(selectedRoute.data.distanceMeters)}
-          </Text>
-          <Text className="text-gray-300">{formatDuration(selectedRoute.data.durationSeconds)} drive</Text>
-          {selectedRouteType === 'truck' && restrictions && (
-            <Text className="text-xs text-gray-500">
-              Restrictions used: {restrictions.heightMeters}m height · {restrictions.weightTons}t weight ·{' '}
-              {restrictions.lengthMeters}m length
-            </Text>
-          )}
+              <Text
+                className={`text-xs font-semibold ${
+                  selectedRouteType === option.type ? 'text-white' : 'text-gray-400'
+                }`}
+              >
+                {option.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
-      )}
 
-      {onSave && (
-        <TouchableOpacity className="items-center rounded-lg bg-blue-600 py-2" onPress={onSave}>
-          <Text className="text-xs font-semibold text-white">{isSaved ? 'Saved ✓' : 'Save this route'}</Text>
-        </TouchableOpacity>
-      )}
+        {selectedRoute.data && (
+          <View className="gap-1">
+            <Text className="text-2xl font-bold" style={{ color: ROUTE_TYPE_COLOR[selectedRouteType] }}>
+              {formatDistance(selectedRoute.data.distanceMeters)}
+            </Text>
+            <Text className="text-gray-300">{formatDuration(selectedRoute.data.durationSeconds)} drive</Text>
+            {selectedRouteType === 'truck' && restrictions && (
+              <Text className="text-xs text-gray-500">
+                Restrictions used: {restrictions.heightMeters}m height · {restrictions.weightTons}t weight ·{' '}
+                {restrictions.lengthMeters}m length
+              </Text>
+            )}
+          </View>
+        )}
 
-      {truckRoute.error && (
-        <Text className="text-red-400">
-          {truckRoute.error instanceof Error ? truckRoute.error.message : 'Could not find a truck route.'}
-        </Text>
-      )}
-      {carRoute.error && (
-        <Text className="text-red-400">
-          {carRoute.error instanceof Error ? carRoute.error.message : 'Could not find a car route.'}
-        </Text>
-      )}
-    </View>
-  );
-};
+        {onSave && (
+          <TouchableOpacity className="items-center rounded-lg bg-blue-600 py-2" onPress={onSave}>
+            <Text className="text-xs font-semibold text-white">{isSaved ? 'Saved ✓' : 'Save this route'}</Text>
+          </TouchableOpacity>
+        )}
+
+        {ROUTE_OPTIONS.filter((option) => routes[option.type].error).map((option) => (
+          <Text key={option.type} className="text-red-400">
+            {errorMessage(routes[option.type].error, ERROR_FALLBACK[option.type])}
+          </Text>
+        ))}
+      </View>
+    );
+  }
+);
