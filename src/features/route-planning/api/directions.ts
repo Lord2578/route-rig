@@ -28,12 +28,22 @@ type OrsDirectionsResponse = {
   }[];
 };
 
-async function fetchRoute(
+type DirectionsRequestBody = {
+  coordinates: [number, number][];
+  options?: {
+    vehicle_type: string;
+    profile_params: {
+      restrictions: { height: number; weight: number; length: number };
+    };
+  };
+};
+
+export function buildDirectionsRequestBody(
   profile: 'driving-hgv' | 'driving-car',
   origin: GeocodeResult,
   destination: GeocodeResult,
   restrictions?: TruckRestrictions
-): Promise<RouteResult> {
+): DirectionsRequestBody {
   const options =
     profile === 'driving-hgv' && restrictions
       ? {
@@ -48,19 +58,28 @@ async function fetchRoute(
         }
       : undefined;
 
+  return {
+    coordinates: [
+      [origin.longitude, origin.latitude],
+      [destination.longitude, destination.latitude],
+    ],
+    ...(options ? { options } : {}),
+  };
+}
+
+async function fetchRoute(
+  profile: 'driving-hgv' | 'driving-car',
+  origin: GeocodeResult,
+  destination: GeocodeResult,
+  restrictions?: TruckRestrictions
+): Promise<RouteResult> {
   const response = await fetch(`https://api.openrouteservice.org/v2/directions/${profile}/geojson`, {
     method: 'POST',
     headers: {
       Authorization: process.env.EXPO_PUBLIC_ORS_API_KEY ?? '',
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      coordinates: [
-        [origin.longitude, origin.latitude],
-        [destination.longitude, destination.latitude],
-      ],
-      ...(options ? { options } : {}),
-    }),
+    body: JSON.stringify(buildDirectionsRequestBody(profile, origin, destination, restrictions)),
   });
 
   if (!response.ok) {
