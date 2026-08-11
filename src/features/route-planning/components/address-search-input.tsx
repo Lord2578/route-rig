@@ -1,6 +1,5 @@
-import { BottomSheetFlatList, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import type { GeocodeResult } from '../api/geocode';
 import { useAddressSearch } from '../hooks/use-address-search';
@@ -32,30 +31,29 @@ export const AddressSearchInput = ({ placeholder, onSelect, initialValue }: Prop
 
   return (
     <View>
-      {/* BottomSheetTextInput/BottomSheetFlatList are @gorhom/bottom-sheet's own
-          components, not registered with NativeWind's cssInterop — use `style`. */}
-      <BottomSheetTextInput
-        style={styles.input}
+      <TextInput
+        className="rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white"
         placeholder={placeholder}
+        placeholderTextColor="#9CA3AF"
         value={query}
-        onChangeText={(text: string) => {
+        onChangeText={(text) => {
           setQuery(text);
           setShowResults(true);
         }}
       />
       {isLoading && <Text className="px-3 py-1 text-gray-400">Searching…</Text>}
       {showResults && results && results.length > 0 && (
-        <BottomSheetFlatList
-          style={styles.results}
+        <FlatList
+          className="max-h-60 rounded-lg border border-gray-700 bg-gray-800"
           data={results}
           keyExtractor={(item, index) => `${item.label}-${index}`}
           keyboardShouldPersistTaps="handled"
           renderItem={({ item }) => (
             <TouchableOpacity
-              className="border-b border-gray-100 px-3 py-2"
+              className="border-b border-gray-700 px-3 py-2"
               onPress={() => handleSelect(item)}
             >
-              <Text>{item.label}</Text>
+              <Text className="text-white">{item.label}</Text>
             </TouchableOpacity>
           )}
         />
@@ -63,21 +61,3 @@ export const AddressSearchInput = ({ placeholder, onSelect, initialValue }: Prop
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  input: {
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#D1D5DB',
-    backgroundColor: '#fff',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  results: {
-    maxHeight: 240,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    backgroundColor: '#fff',
-  },
-});

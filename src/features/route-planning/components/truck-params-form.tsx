@@ -1,6 +1,5 @@
-import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import type { TruckRestrictions } from '../api/directions';
 
@@ -27,24 +26,26 @@ export const TruckParamsForm = ({ onSubmit, disabled, initialRestrictions }: Pro
 
   return (
     <View className="flex-row gap-2">
-      {/* BottomSheetTextInput isn't registered with NativeWind's cssInterop — use `style`. */}
-      <BottomSheetTextInput
-        style={styles.input}
+      <TextInput
+        className="flex-1 rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white"
         placeholder="Height (m)"
+        placeholderTextColor="#9CA3AF"
         keyboardType="decimal-pad"
         value={height}
         onChangeText={setHeight}
       />
-      <BottomSheetTextInput
-        style={styles.input}
+      <TextInput
+        className="flex-1 rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white"
         placeholder="Weight (t)"
+        placeholderTextColor="#9CA3AF"
         keyboardType="decimal-pad"
         value={weight}
         onChangeText={setWeight}
       />
-      <BottomSheetTextInput
-        style={styles.input}
+      <TextInput
+        className="flex-1 rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white"
         placeholder="Length (m)"
+        placeholderTextColor="#9CA3AF"
         keyboardType="decimal-pad"
         value={length}
         onChangeText={setLength}
@@ -65,15 +66,3 @@ export const TruckParamsForm = ({ onSubmit, disabled, initialRestrictions }: Pro
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  input: {
-    flex: 1,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#D1D5DB',
-    backgroundColor: '#fff',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-});
