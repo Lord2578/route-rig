@@ -4,7 +4,7 @@
     "slug": "routerig",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/icons/icon-main-1024.png",
     "userInterfaceStyle": "dark",
     "ios": {
       "supportsTablet": true,
@@ -15,16 +15,16 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "backgroundColor": "#111827",
+        "foregroundImage": "./assets/icons/adaptive-foreground-1024.png",
+        "backgroundImage": "./assets/icons/adaptive-background-1024.png",
+        "monochromeImage": "./assets/icons/monochrome-1024.png"
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.routerig.app"
     },
     "web": {
-      "favicon": "./assets/favicon.png",
+      "favicon": "./assets/icons/favicon-196.png",
       "bundler": "metro"
     },
     "plugins": [
@@ -40,7 +40,15 @@
           "locationWhenInUsePermission": "RouteRig uses your location to center the map and calculate distance along your route."
         }
       ],
-      "expo-notifications"
+      "expo-notifications",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#111827",
+          "image": "./assets/icons/splash-1024.png",
+          "imageWidth": 220
+        }
+      ]
     ],
     "extra": {
       "eas": {
