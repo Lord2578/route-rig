@@ -1,38 +1,49 @@
-import { useState } from 'react';
-import { Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
+import { useEffect, useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import type { TruckRestrictions } from '../api/directions';
 
 type Props = {
   onSubmit: (restrictions: TruckRestrictions) => void;
   disabled?: boolean;
+  initialRestrictions?: TruckRestrictions;
 };
 
-export const TruckParamsForm = ({ onSubmit, disabled }: Props) => {
-  const [height, setHeight] = useState('');
-  const [weight, setWeight] = useState('');
-  const [length, setLength] = useState('');
+export const TruckParamsForm = ({ onSubmit, disabled, initialRestrictions }: Props) => {
+  const [height, setHeight] = useState(initialRestrictions ? `${initialRestrictions.heightMeters}` : '');
+  const [weight, setWeight] = useState(initialRestrictions ? `${initialRestrictions.weightTons}` : '');
+  const [length, setLength] = useState(initialRestrictions ? `${initialRestrictions.lengthMeters}` : '');
+
+  useEffect(() => {
+    if (initialRestrictions) {
+      setHeight(`${initialRestrictions.heightMeters}`);
+      setWeight(`${initialRestrictions.weightTons}`);
+      setLength(`${initialRestrictions.lengthMeters}`);
+    }
+  }, [initialRestrictions]);
 
   const isValid = Number(height) > 0 && Number(weight) > 0 && Number(length) > 0;
 
   return (
     <View className="flex-row gap-2">
-      <TextInput
-        className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2"
+      {/* BottomSheetTextInput isn't registered with NativeWind's cssInterop — use `style`. */}
+      <BottomSheetTextInput
+        style={styles.input}
         placeholder="Height (m)"
         keyboardType="decimal-pad"
         value={height}
         onChangeText={setHeight}
       />
-      <TextInput
-        className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2"
+      <BottomSheetTextInput
+        style={styles.input}
         placeholder="Weight (t)"
         keyboardType="decimal-pad"
         value={weight}
         onChangeText={setWeight}
       />
-      <TextInput
-        className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2"
+      <BottomSheetTextInput
+        style={styles.input}
         placeholder="Length (m)"
         keyboardType="decimal-pad"
         value={length}
@@ -54,3 +65,15 @@ export const TruckParamsForm = ({ onSubmit, disabled }: Props) => {
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  input: {
+    flex: 1,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    backgroundColor: '#fff',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+});

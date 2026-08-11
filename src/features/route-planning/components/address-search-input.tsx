@@ -1,5 +1,6 @@
+import { BottomSheetFlatList, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { useEffect, useState } from 'react';
-import { FlatList, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import type { GeocodeResult } from '../api/geocode';
 import { useAddressSearch } from '../hooks/use-address-search';
@@ -31,19 +32,21 @@ export const AddressSearchInput = ({ placeholder, onSelect, initialValue }: Prop
 
   return (
     <View>
-      <TextInput
-        className="rounded-lg border border-gray-300 bg-white px-3 py-2"
+      {/* BottomSheetTextInput/BottomSheetFlatList are @gorhom/bottom-sheet's own
+          components, not registered with NativeWind's cssInterop — use `style`. */}
+      <BottomSheetTextInput
+        style={styles.input}
         placeholder={placeholder}
         value={query}
-        onChangeText={(text) => {
+        onChangeText={(text: string) => {
           setQuery(text);
           setShowResults(true);
         }}
       />
       {isLoading && <Text className="px-3 py-1 text-gray-400">Searching…</Text>}
       {showResults && results && results.length > 0 && (
-        <FlatList
-          className="max-h-60 rounded-lg border border-gray-200 bg-white"
+        <BottomSheetFlatList
+          style={styles.results}
           data={results}
           keyExtractor={(item, index) => `${item.label}-${index}`}
           keyboardShouldPersistTaps="handled"
@@ -60,3 +63,21 @@ export const AddressSearchInput = ({ placeholder, onSelect, initialValue }: Prop
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  input: {
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    backgroundColor: '#fff',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  results: {
+    maxHeight: 240,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    backgroundColor: '#fff',
+  },
+});
