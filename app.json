@@ -39,7 +39,8 @@
         {
           "locationWhenInUsePermission": "RouteRig uses your location to center the map and calculate distance along your route."
         }
-      ]
+      ],
+      "expo-notifications"
     ],
     "extra": {
       "eas": {
