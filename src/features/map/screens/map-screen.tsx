@@ -1,13 +1,14 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 import MapView, { Polyline } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import type { RootStackParamList } from '../../../app/navigation/root-navigator';
 import { IconButton } from '../../../shared/components/icon-button';
+import { ROUTE_TYPE_COLOR } from '../../../shared/constants/route-colors';
 import { useProximityNotification } from '../../notifications/hooks/use-proximity-notification';
 import { useSaveRoute } from '../../saved-routes/hooks/use-saved-routes';
 import type { TruckRestrictions } from '../../route-planning/api/directions';
@@ -38,6 +39,21 @@ export const MapScreen = () => {
   const saveRoute = useSaveRoute();
 
   useProximityNotification(truckRoute.data ? destination : null);
+
+  const handleSave = useCallback(() => {
+    if (origin && destination && restrictions) {
+      saveRoute.mutate({ origin, destination, restrictions });
+    }
+  }, [origin, destination, restrictions, saveRoute.mutate]);
+
+  const truckRouteState = useMemo(
+    () => ({ data: truckRoute.data, error: truckRoute.error }),
+    [truckRoute.data, truckRoute.error]
+  );
+  const carRouteState = useMemo(
+    () => ({ data: carRoute.data, error: carRoute.error }),
+    [carRoute.data, carRoute.error]
+  );
 
   useEffect(() => {
     const selected = selectedRouteType === 'truck' ? truckRoute.data : carRoute.data;
@@ -93,10 +109,10 @@ export const MapScreen = () => {
         userInterfaceStyle="dark"
       >
         {selectedRouteType === 'car' && carRoute.data && (
-          <Polyline coordinates={carRoute.data.points} strokeColor="#FB923C" strokeWidth={4} />
+          <Polyline coordinates={carRoute.data.points} strokeColor={ROUTE_TYPE_COLOR.car} strokeWidth={4} />
         )}
         {selectedRouteType === 'truck' && truckRoute.data && (
-          <Polyline coordinates={truckRoute.data.points} strokeColor="#3B82F6" strokeWidth={4} />
+          <Polyline coordinates={truckRoute.data.points} strokeColor={ROUTE_TYPE_COLOR.truck} strokeWidth={4} />
         )}
       </MapView>
 
@@ -125,17 +141,13 @@ export const MapScreen = () => {
         </View>
 
         <RouteSummaryCard
-          truckRoute={truckRoute}
-          carRoute={carRoute}
+          truckRoute={truckRouteState}
+          carRoute={carRouteState}
           selectedRouteType={selectedRouteType}
           onSelectRouteType={setSelectedRouteType}
           restrictions={restrictions}
           isSaved={saveRoute.isSuccess}
-          onSave={
-            origin && destination && restrictions && truckRoute.data
-              ? () => saveRoute.mutate({ origin, destination, restrictions })
-              : undefined
-          }
+          onSave={origin && destination && restrictions && truckRoute.data ? handleSave : undefined}
         />
       </SafeAreaView>
     </View>
