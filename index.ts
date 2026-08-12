@@ -1,5 +1,6 @@
 import { registerRootComponent } from 'expo';
 
+import './src/features/notifications/tasks/proximity-task';
 import App from './src/app/App';
 
 // registerRootComponent calls AppRegistry.registerComponent('main', () => App);

@@ -2,22 +2,31 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Text, View } from 'react-native';
+import { ActivityIndicator, Share, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Polyline } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import type { RootStackParamList } from '../../../app/navigation/root-navigator';
 import { IconButton } from '../../../shared/components/icon-button';
+import { OfflineBanner } from '../../../shared/components/offline-banner';
 import { ROUTE_TYPE_COLOR } from '../../../shared/constants/route-colors';
+import { formatDistance, formatDuration } from '../../../shared/utils/format';
 import { useProximityNotification } from '../../notifications/hooks/use-proximity-notification';
 import { useSaveRoute } from '../../saved-routes/hooks/use-saved-routes';
+import { useSaveTruckProfile, useTruckProfile } from '../../truck-profile/hooks/use-truck-profile';
 import type { TruckRestrictions } from '../../route-planning/api/directions';
-import type { GeocodeResult } from '../../route-planning/api/geocode';
-import { AddressSearchInput } from '../../route-planning/components/address-search-input';
 import { RouteSummaryCard } from '../../route-planning/components/route-summary-card';
 import { TruckParamsForm } from '../../route-planning/components/truck-params-form';
+import { WaypointRow } from '../../route-planning/components/waypoint-row';
 import { useCarRoute, useTruckRoute } from '../../route-planning/hooks/use-routes';
+import { useWaypoints } from '../../route-planning/hooks/use-waypoints';
 import { useCurrentLocation } from '../hooks/use-current-location';
+
+const waypointPlaceholder = (index: number, total: number) => {
+  if (index === 0) return 'From';
+  if (index === total - 1) return 'To';
+  return `Stop ${index}`;
+};
 
 export const MapScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -27,24 +36,58 @@ export const MapScreen = () => {
   const { location, errorMsg } = useCurrentLocation();
   const mapRef = useRef<MapView>(null);
 
-  const [origin, setOrigin] = useState<GeocodeResult | null>(savedRoute?.origin ?? null);
-  const [destination, setDestination] = useState<GeocodeResult | null>(savedRoute?.destination ?? null);
+  const { slots, updateWaypoint, addStop, removeStop, origin, destination, resolved } = useWaypoints(
+    savedRoute?.waypoints
+  );
   const [restrictions, setRestrictions] = useState<TruckRestrictions | null>(
     savedRoute?.restrictions ?? null
   );
   const [selectedRouteType, setSelectedRouteType] = useState<'truck' | 'car'>('truck');
 
-  const truckRoute = useTruckRoute(origin, destination, restrictions);
-  const carRoute = useCarRoute(origin, destination);
+  const truckRoute = useTruckRoute(resolved, restrictions);
+  const carRoute = useCarRoute(resolved);
   const saveRoute = useSaveRoute();
+  const truckProfile = useTruckProfile();
+  const saveTruckProfile = useSaveTruckProfile();
 
   useProximityNotification(truckRoute.data ? destination : null);
 
+  const canSave = useMemo(
+    () => Boolean(resolved && restrictions && truckRoute.data),
+    [resolved, restrictions, truckRoute.data]
+  );
+
   const handleSave = useCallback(() => {
-    if (origin && destination && restrictions) {
-      saveRoute.mutate({ origin, destination, restrictions });
+    if (resolved && restrictions) {
+      saveRoute.mutate({ waypoints: resolved, restrictions });
     }
-  }, [origin, destination, restrictions, saveRoute.mutate]);
+  }, [resolved, restrictions, saveRoute.mutate]);
+
+  const handleShare = useCallback(() => {
+    const selectedRoute = selectedRouteType === 'truck' ? truckRoute.data : carRoute.data;
+    if (!origin || !destination || !selectedRoute) {
+      return;
+    }
+    Share.share({
+      message: `${origin.label} → ${destination.label}\n${formatDistance(selectedRoute.distanceMeters)} · ${formatDuration(
+        selectedRoute.durationSeconds
+      )} by ${selectedRouteType}\n\nPlanned with RouteRig`,
+    });
+  }, [origin, destination, selectedRouteType, truckRoute.data, carRoute.data]);
+
+  const handleSubmitRestrictions = useCallback(
+    (newRestrictions: TruckRestrictions) => {
+      setRestrictions(newRestrictions);
+      saveTruckProfile.mutate(newRestrictions);
+    },
+    [saveTruckProfile.mutate]
+  );
+
+  useEffect(() => {
+    if (!savedRoute && !restrictions && truckProfile.data) {
+      setRestrictions(truckProfile.data);
+    }
+  }, [savedRoute, restrictions, truckProfile.data]);
 
   const truckRouteState = useMemo(
     () => ({ data: truckRoute.data, error: truckRoute.error }),
@@ -60,7 +103,7 @@ export const MapScreen = () => {
     const points = selected?.points ?? truckRoute.data?.points ?? carRoute.data?.points;
     if (points && points.length > 0) {
       mapRef.current?.fitToCoordinates(points, {
-        edgePadding: { top: 220, right: 50, bottom: 220, left: 50 },
+        edgePadding: { top: 260, right: 50, bottom: 220, left: 50 },
         animated: true,
       });
     }
@@ -68,13 +111,13 @@ export const MapScreen = () => {
 
   useEffect(() => {
     if (location && !origin) {
-      setOrigin({
+      updateWaypoint(slots[0].id, {
         label: 'Current location',
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
       });
     }
-  }, [location, origin]);
+  }, [location, origin, slots, updateWaypoint]);
 
   if (errorMsg) {
     return (
@@ -117,13 +160,26 @@ export const MapScreen = () => {
       </MapView>
 
       <SafeAreaView className="absolute left-0 right-0 top-0 gap-2 p-3" edges={['top']}>
-        <AddressSearchInput placeholder="From" onSelect={setOrigin} initialValue={origin?.label} />
-        <AddressSearchInput placeholder="To" onSelect={setDestination} initialValue={destination?.label} />
+        <OfflineBanner />
+
+        {slots.map((slot, index) => (
+          <WaypointRow
+            key={slot.id}
+            slot={slot}
+            placeholder={waypointPlaceholder(index, slots.length)}
+            onUpdate={updateWaypoint}
+            onRemove={index > 0 && index < slots.length - 1 ? removeStop : undefined}
+          />
+        ))}
+
+        <TouchableOpacity onPress={addStop}>
+          <Text className="text-xs font-semibold text-blue-400">+ Add stop</Text>
+        </TouchableOpacity>
 
         <TruckParamsForm
-          onSubmit={setRestrictions}
+          onSubmit={handleSubmitRestrictions}
           disabled={truckRoute.isFetching || carRoute.isFetching}
-          initialRestrictions={savedRoute?.restrictions}
+          initialRestrictions={savedRoute?.restrictions ?? truckProfile.data ?? undefined}
         />
 
         {(truckRoute.isFetching || carRoute.isFetching) && (
@@ -147,7 +203,12 @@ export const MapScreen = () => {
           onSelectRouteType={setSelectedRouteType}
           restrictions={restrictions}
           isSaved={saveRoute.isSuccess}
-          onSave={origin && destination && restrictions && truckRoute.data ? handleSave : undefined}
+          onSave={canSave ? handleSave : undefined}
+          onShare={
+            origin && destination && (selectedRouteType === 'truck' ? truckRoute.data : carRoute.data)
+              ? handleShare
+              : undefined
+          }
         />
       </SafeAreaView>
     </View>

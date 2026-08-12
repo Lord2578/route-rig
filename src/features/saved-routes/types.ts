@@ -3,8 +3,7 @@ import type { GeocodeResult } from '../route-planning/api/geocode';
 
 export type SavedRoute = {
   id: string;
-  origin: GeocodeResult;
-  destination: GeocodeResult;
+  waypoints: GeocodeResult[];
   restrictions: TruckRestrictions;
   createdAt: number;
 };
