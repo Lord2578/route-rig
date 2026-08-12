@@ -1,9 +1,10 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Share, Text, TouchableOpacity, View } from 'react-native';
-import MapView, { Polyline } from 'react-native-maps';
+import MapView, { Marker, Polyline } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import type { RootStackParamList } from '../../../app/navigation/root-navigator';
@@ -157,6 +158,22 @@ export const MapScreen = () => {
         {selectedRouteType === 'truck' && truckRoute.data && (
           <Polyline coordinates={truckRoute.data.points} strokeColor={ROUTE_TYPE_COLOR.truck} strokeWidth={4} />
         )}
+        {slots.map((slot, index) => {
+          if (!slot.value) {
+            return null;
+          }
+          const isOrigin = index === 0;
+          const isDestination = index === slots.length - 1;
+          return (
+            <Marker
+              key={slot.id}
+              coordinate={{ latitude: slot.value.latitude, longitude: slot.value.longitude }}
+              title={slot.value.label}
+              description={isOrigin ? 'From' : isDestination ? 'To' : `Stop ${index}`}
+              pinColor={isOrigin ? 'green' : isDestination ? 'red' : 'orange'}
+            />
+          );
+        })}
       </MapView>
 
       <SafeAreaView className="absolute left-0 right-0 top-0 gap-2 p-3" edges={['top']}>
@@ -172,8 +189,12 @@ export const MapScreen = () => {
           />
         ))}
 
-        <TouchableOpacity onPress={addStop}>
-          <Text className="text-xs font-semibold text-blue-400">+ Add stop</Text>
+        <TouchableOpacity
+          className="flex-row items-center gap-1 self-start rounded-lg border border-blue-500 bg-blue-500/10 px-3 py-1.5"
+          onPress={addStop}
+        >
+          <Ionicons name="add" size={16} color="#60A5FA" />
+          <Text className="text-xs font-semibold text-blue-400">Add stop</Text>
         </TouchableOpacity>
 
         <TruckParamsForm
