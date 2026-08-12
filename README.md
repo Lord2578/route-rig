@@ -13,12 +13,17 @@ dev client workflow, and clean feature-based architecture in React Native.
 
 - Full-screen map with foreground geolocation (origin defaults to current
   location)
-- Address search (autocomplete) for origin and destination
-- Truck parameters form (height, weight, length)
+- Address search (autocomplete) for origin, destination, and any number of
+  intermediate stops
+- Truck parameters form (height, weight, length), remembered as a truck
+  profile so it doesn't need retyping next time
 - Truck route vs. car route, rendered side by side on the map with a
-  distance/duration comparison card
+  distance/duration comparison card and a "+X km / +Y min vs car" delta
 - Save routes locally and reopen them later, pre-filled
-- Local notification when approaching the destination (foreground only)
+- Share a route summary via the native share sheet
+- Local notification when approaching the destination, tracked in the
+  background
+- Offline banner when the device has no network connection
 - Dark theme throughout, including native map tiles on iOS
 
 ## Tech stack
@@ -31,9 +36,14 @@ dev client workflow, and clean feature-based architecture in React Native.
 - **TanStack Query** for all server state (geocoding, routing, saved routes)
 - **NativeWind** (Tailwind) for styling
 - **React Navigation** (native stack) for the two screens
-- **AsyncStorage** for saved routes
-- **expo-notifications** + **expo-location** for the proximity alert
+- **AsyncStorage** for saved routes and the remembered truck profile
+- **expo-notifications** + **expo-location** + **expo-task-manager** for the
+  background proximity alert
+- **@react-native-community/netinfo** for the offline banner
 - **OpenRouteService** for geocoding and truck/car routing
+- **Buoy** (`@buoy-gg/*`) as an in-app dev-tools overlay during development
+  (network/AsyncStorage/TanStack Query inspection, perf monitor) — gated
+  behind `__DEV__`
 
 No client-state library (Zustand, Redux, etc.) — all state ended up being
 either local `useState` in the screen that owns it, or server state already
@@ -51,11 +61,16 @@ src/
   app/                 navigation, providers, entry point
   features/
     map/                map screen, geolocation hook
-    route-planning/      address search, truck params form, routing API, route summary card
+    route-planning/      address search, waypoint list, truck params form,
+                           routing API, route summary card
     saved-routes/        AsyncStorage layer, saved routes screen
-    notifications/       proximity notification hook
+    truck-profile/        AsyncStorage layer for the remembered truck profile
+    notifications/        proximity notification hook + the background task
+                           it starts (tasks/proximity-task.ts)
   shared/
-    components/          reusable UI (AppTextInput, IconButton)
+    components/          reusable UI (AppTextInput, IconButton, OfflineBanner)
+    constants/            shared design tokens (route colors)
+    hooks/                cross-feature hooks (useIsOffline)
     utils/                pure functions (distance formatting, haversine)
 ```
 
@@ -72,11 +87,16 @@ tested without mocking a network or a component tree.
   logistics industry) but its free tier requires a credit card on file. ORS
   needs no billing information and has a truck/HGV profile that covers the
   same core need.
-- **Foreground-only location tracking.** Full background tracking (and
-  background-capable notifications) was scoped out of the MVP — the
-  iOS/Android background-mode setup is a well-known time sink disproportionate
-  to a portfolio project's timeline, and it needs a physical device to test
-  properly.
+- **Background location tracking, added after the MVP.** Originally scoped
+  out for the reasons above (background-mode setup is a well-known time sink,
+  and it needs a physical device to test), but added once the rest of the app
+  was solid. Uses `expo-task-manager` + `expo-location`'s
+  `startLocationUpdatesAsync` with a module-level task (`proximity-task.ts`)
+  defined at the JS entry point, since the OS can invoke it without the app's
+  React tree being mounted. Android requires a foreground service (persistent
+  notification while tracking) and a separate background-location permission
+  request after the foreground one is granted; iOS requires "Always" location
+  permission.
 - **Native map providers, not forced parity.** iOS uses Apple Maps and
   Android uses Google Maps (react-native-maps' default per platform). Forcing
   Google Maps on both would need a second Google Cloud API key and a billing
@@ -112,7 +132,9 @@ it for this project's size.
 
 ## Known limitations
 
-- Background location tracking and background notifications are not
-  implemented (see "Notable decisions" above)
-- No offline handling beyond surfacing the raw API error message
+- Offline handling is a banner ("no internet connection"), not a queued/retry
+  system — requests still just fail while offline
 - Android has not been tested on a physical device, only the emulator
+- Background tracking has one target at a time (the current route's
+  destination) and no UI to see tracking status beyond the Android
+  foreground-service notification

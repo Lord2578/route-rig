@@ -24,7 +24,11 @@ const ResultItem = memo(function ResultItem({ item, onPress }: ResultItemProps) 
   );
 });
 
-export const AddressSearchInput = ({ placeholder, onSelect, initialValue }: Props) => {
+export const AddressSearchInput = memo(function AddressSearchInput({
+  placeholder,
+  onSelect,
+  initialValue,
+}: Props) {
   const [query, setQuery] = useState(initialValue ?? '');
   const [showResults, setShowResults] = useState(false);
   const { data: results, isLoading } = useAddressSearch(query);
@@ -66,4 +70,4 @@ export const AddressSearchInput = ({ placeholder, onSelect, initialValue }: Prop
       )}
     </View>
   );
-};
+});

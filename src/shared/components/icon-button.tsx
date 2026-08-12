@@ -6,13 +6,17 @@ type Props = {
   name: ComponentProps<typeof Ionicons>['name'];
   onPress: () => void;
   color?: string;
+  size?: number;
+  className?: string;
 };
 
-export const IconButton = ({ name, onPress, color = '#60A5FA' }: Props) => (
+export const IconButton = ({ name, onPress, color = '#60A5FA', size = 22, className }: Props) => (
   <TouchableOpacity
-    className="h-12 w-12 items-center justify-center rounded-full bg-gray-800 shadow-md android:[elevation:4]"
+    className={
+      className ?? 'h-12 w-12 items-center justify-center rounded-full bg-gray-800 shadow-md android:[elevation:4]'
+    }
     onPress={onPress}
   >
-    <Ionicons name={name} size={22} color={color} />
+    <Ionicons name={name} size={size} color={color} />
   </TouchableOpacity>
 );

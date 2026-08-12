@@ -1,58 +1,60 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import * as Location from 'expo-location';
 import * as Notifications from 'expo-notifications';
 
-import { haversineDistanceMeters } from '../../../shared/utils/geo';
-
-const PROXIMITY_THRESHOLD_METERS = 500;
+import { PROXIMITY_TASK_NAME, setProximityTarget } from '../tasks/proximity-task';
 
 type LatLng = { latitude: number; longitude: number };
 
-export function useProximityNotification(destination: LatLng | null) {
-  const notifiedRef = useRef(false);
+async function stopIfRunning() {
+  const started = await Location.hasStartedLocationUpdatesAsync(PROXIMITY_TASK_NAME);
+  if (started) {
+    await Location.stopLocationUpdatesAsync(PROXIMITY_TASK_NAME);
+  }
+}
 
+export function useProximityNotification(destination: LatLng | null) {
   useEffect(() => {
+    setProximityTarget(destination);
+
     if (!destination) {
+      stopIfRunning();
       return;
     }
 
-    notifiedRef.current = false;
-    let subscription: Location.LocationSubscription | null = null;
-
     (async () => {
-      const { status } = await Notifications.requestPermissionsAsync();
-      if (status !== 'granted') {
+      const [{ status: foregroundStatus }, { status: notificationStatus }] = await Promise.all([
+        Location.requestForegroundPermissionsAsync(),
+        Notifications.requestPermissionsAsync(),
+      ]);
+      if (foregroundStatus !== 'granted' || notificationStatus !== 'granted') {
         return;
       }
 
-      subscription = await Location.watchPositionAsync(
-        { accuracy: Location.Accuracy.Balanced, timeInterval: 5000, distanceInterval: 20 },
-        (position) => {
-          if (notifiedRef.current) {
-            return;
-          }
+      const { status: backgroundStatus } = await Location.requestBackgroundPermissionsAsync();
+      if (backgroundStatus !== 'granted') {
+        return;
+      }
 
-          const distance = haversineDistanceMeters(
-            { latitude: position.coords.latitude, longitude: position.coords.longitude },
-            destination
-          );
-
-          if (distance <= PROXIMITY_THRESHOLD_METERS) {
-            notifiedRef.current = true;
-            Notifications.scheduleNotificationAsync({
-              content: {
-                title: 'Approaching destination',
-                body: "You're less than 500m from your destination.",
-              },
-              trigger: null,
-            });
-          }
-        }
-      );
+      const alreadyStarted = await Location.hasStartedLocationUpdatesAsync(PROXIMITY_TASK_NAME);
+      if (!alreadyStarted) {
+        await Location.startLocationUpdatesAsync(PROXIMITY_TASK_NAME, {
+          accuracy: Location.Accuracy.Balanced,
+          timeInterval: 15000,
+          distanceInterval: 50,
+          pausesUpdatesAutomatically: false,
+          foregroundService: {
+            notificationTitle: 'RouteRig is tracking your route',
+            notificationBody: "We'll alert you when you're close to your destination.",
+          },
+        });
+      }
     })();
-
-    return () => {
-      subscription?.remove();
-    };
   }, [destination]);
+
+  useEffect(() => {
+    return () => {
+      stopIfRunning();
+    };
+  }, []);
 }

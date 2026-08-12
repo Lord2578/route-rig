@@ -40,8 +40,7 @@ type DirectionsRequestBody = {
 
 export function buildDirectionsRequestBody(
   profile: 'driving-hgv' | 'driving-car',
-  origin: GeocodeResult,
-  destination: GeocodeResult,
+  waypoints: GeocodeResult[],
   restrictions?: TruckRestrictions
 ): DirectionsRequestBody {
   const options =
@@ -59,18 +58,14 @@ export function buildDirectionsRequestBody(
       : undefined;
 
   return {
-    coordinates: [
-      [origin.longitude, origin.latitude],
-      [destination.longitude, destination.latitude],
-    ],
+    coordinates: waypoints.map((waypoint) => [waypoint.longitude, waypoint.latitude]),
     ...(options ? { options } : {}),
   };
 }
 
 async function fetchRoute(
   profile: 'driving-hgv' | 'driving-car',
-  origin: GeocodeResult,
-  destination: GeocodeResult,
+  waypoints: GeocodeResult[],
   restrictions?: TruckRestrictions
 ): Promise<RouteResult> {
   const response = await fetch(`https://api.openrouteservice.org/v2/directions/${profile}/geojson`, {
@@ -79,7 +74,7 @@ async function fetchRoute(
       Authorization: process.env.EXPO_PUBLIC_ORS_API_KEY ?? '',
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(buildDirectionsRequestBody(profile, origin, destination, restrictions)),
+    body: JSON.stringify(buildDirectionsRequestBody(profile, waypoints, restrictions)),
   });
 
   if (!response.ok) {
@@ -89,23 +84,18 @@ async function fetchRoute(
 
   const data: OrsDirectionsResponse = await response.json();
   const feature = data.features[0];
-  const segment = feature.properties.segments[0];
 
   return {
     points: feature.geometry.coordinates.map(([longitude, latitude]) => ({ latitude, longitude })),
-    distanceMeters: segment.distance,
-    durationSeconds: segment.duration,
+    distanceMeters: feature.properties.segments.reduce((sum, segment) => sum + segment.distance, 0),
+    durationSeconds: feature.properties.segments.reduce((sum, segment) => sum + segment.duration, 0),
   };
 }
 
-export function getTruckRoute(
-  origin: GeocodeResult,
-  destination: GeocodeResult,
-  restrictions: TruckRestrictions
-): Promise<RouteResult> {
-  return fetchRoute('driving-hgv', origin, destination, restrictions);
+export function getTruckRoute(waypoints: GeocodeResult[], restrictions: TruckRestrictions): Promise<RouteResult> {
+  return fetchRoute('driving-hgv', waypoints, restrictions);
 }
 
-export function getCarRoute(origin: GeocodeResult, destination: GeocodeResult): Promise<RouteResult> {
-  return fetchRoute('driving-car', origin, destination);
+export function getCarRoute(waypoints: GeocodeResult[]): Promise<RouteResult> {
+  return fetchRoute('driving-car', waypoints);
 }

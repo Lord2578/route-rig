@@ -37,9 +37,14 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "RouteRig uses your location to center the map and calculate distance along your route."
+          "locationWhenInUsePermission": "RouteRig uses your location to center the map and calculate distance along your route.",
+          "locationAlwaysAndWhenInUsePermission": "RouteRig uses your location, including in the background, to alert you when you're approaching your destination.",
+          "isIosBackgroundLocationEnabled": true,
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true
         }
       ],
+      "expo-task-manager",
       "expo-notifications",
       [
         "expo-splash-screen",

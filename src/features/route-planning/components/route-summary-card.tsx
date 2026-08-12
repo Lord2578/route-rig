@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 
 import { ROUTE_TYPE_COLOR } from '../../../shared/constants/route-colors';
-import { formatDistance, formatDuration } from '../../../shared/utils/format';
+import { formatDistance, formatDuration, formatRouteDelta } from '../../../shared/utils/format';
 import type { RouteResult, TruckRestrictions } from '../api/directions';
 
 type RouteType = 'truck' | 'car';
@@ -20,6 +20,7 @@ type Props = {
   restrictions: TruckRestrictions | null;
   onSave?: () => void;
   isSaved?: boolean;
+  onShare?: () => void;
 };
 
 const ROUTE_OPTIONS: { type: RouteType; label: string; activeClassName: string }[] = [
@@ -36,7 +37,16 @@ const errorMessage = (error: unknown, fallback: string) =>
   error instanceof Error ? error.message : fallback;
 
 export const RouteSummaryCard = memo(
-  ({ truckRoute, carRoute, selectedRouteType, onSelectRouteType, restrictions, onSave, isSaved }: Props) => {
+  ({
+    truckRoute,
+    carRoute,
+    selectedRouteType,
+    onSelectRouteType,
+    restrictions,
+    onSave,
+    isSaved,
+    onShare,
+  }: Props) => {
     const routes: Record<RouteType, RouteState> = { truck: truckRoute, car: carRoute };
     const hasContent = truckRoute.data || carRoute.data || truckRoute.error || carRoute.error;
     if (!hasContent) {
@@ -44,6 +54,13 @@ export const RouteSummaryCard = memo(
     }
 
     const selectedRoute = routes[selectedRouteType];
+    const delta =
+      truckRoute.data && carRoute.data
+        ? {
+            distanceMeters: truckRoute.data.distanceMeters - carRoute.data.distanceMeters,
+            durationSeconds: truckRoute.data.durationSeconds - carRoute.data.durationSeconds,
+          }
+        : null;
 
     return (
       <View className="gap-3 rounded-xl border border-gray-700 bg-gray-800 p-3 shadow-md android:[elevation:4]">
@@ -73,6 +90,11 @@ export const RouteSummaryCard = memo(
               {formatDistance(selectedRoute.data.distanceMeters)}
             </Text>
             <Text className="text-gray-300">{formatDuration(selectedRoute.data.durationSeconds)} drive</Text>
+            {selectedRouteType === 'truck' && delta && (
+              <Text className="text-xs text-gray-400">
+                {formatRouteDelta(delta.distanceMeters, delta.durationSeconds)}
+              </Text>
+            )}
             {selectedRouteType === 'truck' && restrictions && (
               <Text className="text-xs text-gray-500">
                 Restrictions used: {restrictions.heightMeters}m height · {restrictions.weightTons}t weight ·{' '}
@@ -82,10 +104,24 @@ export const RouteSummaryCard = memo(
           </View>
         )}
 
-        {onSave && (
-          <TouchableOpacity className="items-center rounded-lg bg-blue-600 py-2" onPress={onSave}>
-            <Text className="text-xs font-semibold text-white">{isSaved ? 'Saved ✓' : 'Save this route'}</Text>
-          </TouchableOpacity>
+        {(onSave || onShare) && (
+          <View className="flex-row gap-2">
+            {onSave && (
+              <TouchableOpacity className="flex-1 items-center rounded-lg bg-blue-600 py-2" onPress={onSave}>
+                <Text className="text-xs font-semibold text-white">
+                  {isSaved ? 'Saved ✓' : 'Save this route'}
+                </Text>
+              </TouchableOpacity>
+            )}
+            {onShare && (
+              <TouchableOpacity
+                className="flex-1 items-center rounded-lg border border-gray-600 py-2"
+                onPress={onShare}
+              >
+                <Text className="text-xs font-semibold text-gray-300">Share</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         )}
 
         {ROUTE_OPTIONS.filter((option) => routes[option.type].error).map((option) => (
