@@ -69,13 +69,13 @@ export const RouteSummaryCard = memo(
             <TouchableOpacity
               key={option.type}
               className={`flex-1 items-center rounded-lg py-2 ${
-                selectedRouteType === option.type ? option.activeClassName : 'border border-gray-600 bg-gray-800'
+                selectedRouteType === option.type ? option.activeClassName : 'border-2 border-gray-500 bg-gray-700'
               }`}
               onPress={() => onSelectRouteType(option.type)}
             >
               <Text
                 className={`text-xs font-semibold ${
-                  selectedRouteType === option.type ? 'text-white' : 'text-gray-400'
+                  selectedRouteType === option.type ? 'text-white' : 'text-gray-200'
                 }`}
               >
                 {option.label}
@@ -115,10 +115,10 @@ export const RouteSummaryCard = memo(
             )}
             {onShare && (
               <TouchableOpacity
-                className="flex-1 items-center rounded-lg border border-gray-600 py-2"
+                className="flex-1 items-center rounded-lg border-2 border-gray-500 bg-gray-700 py-2"
                 onPress={onShare}
               >
-                <Text className="text-xs font-semibold text-gray-300">Share</Text>
+                <Text className="text-xs font-semibold text-gray-200">Share</Text>
               </TouchableOpacity>
             )}
           </View>

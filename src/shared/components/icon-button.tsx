@@ -13,7 +13,8 @@ type Props = {
 export const IconButton = ({ name, onPress, color = '#60A5FA', size = 22, className }: Props) => (
   <TouchableOpacity
     className={
-      className ?? 'h-12 w-12 items-center justify-center rounded-full bg-gray-800 shadow-md android:[elevation:4]'
+      className ??
+      'h-12 w-12 items-center justify-center rounded-full border border-gray-600 bg-gray-900 shadow-md android:[elevation:4]'
     }
     onPress={onPress}
   >

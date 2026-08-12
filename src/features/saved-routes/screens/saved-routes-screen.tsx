@@ -34,8 +34,8 @@ const SavedRouteRow = memo(function SavedRouteRow({ route, onOpen, onDelete }: S
           {route.restrictions.lengthMeters}m
         </Text>
       </View>
-      <TouchableOpacity className="rounded-lg bg-red-500/20 px-3 py-2" onPress={() => onDelete(route)}>
-        <Text className="text-red-400">Delete</Text>
+      <TouchableOpacity className="rounded-lg bg-red-600 px-3 py-2" onPress={() => onDelete(route)}>
+        <Text className="font-semibold text-white">Delete</Text>
       </TouchableOpacity>
     </TouchableOpacity>
   );
