@@ -31,7 +31,7 @@ export const AddressSearchInput = memo(function AddressSearchInput({
 }: Props) {
   const [query, setQuery] = useState(initialValue ?? '');
   const [showResults, setShowResults] = useState(false);
-  const { data: results, isLoading } = useAddressSearch(query);
+  const { data: results, isLoading, error } = useAddressSearch(query);
 
   useEffect(() => {
     if (initialValue && !showResults) {
@@ -59,6 +59,9 @@ export const AddressSearchInput = memo(function AddressSearchInput({
         }}
       />
       {isLoading && <Text className="px-3 py-1 text-gray-400">Searching…</Text>}
+      {showResults && !isLoading && error instanceof Error && (
+        <Text className="px-3 py-1 text-red-400">{error.message}</Text>
+      )}
       {showResults && results && results.length > 0 && (
         <FlatList
           className="max-h-60 rounded-lg border border-gray-700 bg-gray-800"

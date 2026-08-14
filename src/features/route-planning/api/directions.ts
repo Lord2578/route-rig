@@ -78,6 +78,9 @@ async function fetchRoute(
   });
 
   if (!response.ok) {
+    if (response.status === 429) {
+      throw new Error('Too many route requests — please wait a moment and try again.');
+    }
     const body = await response.json().catch(() => null);
     throw new Error(body?.error?.message ?? `Routing request failed: ${response.status}`);
   }
