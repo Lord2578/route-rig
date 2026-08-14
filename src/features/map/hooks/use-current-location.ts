@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react';
 import * as Location from 'expo-location';
 
-export const useCurrentLocation = () => {
+export const useCurrentLocation = (shouldRequest: boolean) => {
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!shouldRequest) {
+      return;
+    }
+
     async function getCurrentLocation() {
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
@@ -18,7 +22,7 @@ export const useCurrentLocation = () => {
     }
 
     getCurrentLocation();
-  }, []);
+  }, [shouldRequest]);
 
   return { location, errorMsg };
 };

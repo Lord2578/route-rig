@@ -22,6 +22,9 @@ export async function searchAddress(query: string): Promise<GeocodeResult[]> {
 
   const response = await fetch(url);
   if (!response.ok) {
+    if (response.status === 429) {
+      throw new Error('Too many searches — please wait a moment and try again.');
+    }
     throw new Error(`Geocoding request failed: ${response.status}`);
   }
 

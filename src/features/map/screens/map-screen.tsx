@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import * as Location from 'expo-location';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Share, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
@@ -10,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import type { RootStackParamList } from '../../../app/navigation/root-navigator';
 import { IconButton } from '../../../shared/components/icon-button';
 import { OfflineBanner } from '../../../shared/components/offline-banner';
+import { PermissionPrimer } from '../../../shared/components/permission-primer';
 import { ROUTE_TYPE_COLOR } from '../../../shared/constants/route-colors';
 import { formatDistance, formatDuration } from '../../../shared/utils/format';
 import { useProximityNotification } from '../../notifications/hooks/use-proximity-notification';
@@ -34,7 +36,22 @@ export const MapScreen = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'Map'>>();
   const savedRoute = route.params?.savedRoute;
 
-  const { location, errorMsg } = useCurrentLocation();
+  const [locationPrimerAcknowledged, setLocationPrimerAcknowledged] = useState(false);
+  const [showLocationPrimer, setShowLocationPrimer] = useState(false);
+  const [bgPrimerAcknowledged, setBgPrimerAcknowledged] = useState(false);
+  const [showBgPrimer, setShowBgPrimer] = useState(false);
+
+  useEffect(() => {
+    Location.getForegroundPermissionsAsync().then(({ status }) => {
+      if (status === 'undetermined') {
+        setShowLocationPrimer(true);
+      } else {
+        setLocationPrimerAcknowledged(true);
+      }
+    });
+  }, []);
+
+  const { location, errorMsg } = useCurrentLocation(locationPrimerAcknowledged);
   const mapRef = useRef<MapView>(null);
 
   const { slots, updateWaypoint, addStop, removeStop, origin, destination, resolved } = useWaypoints(
@@ -51,7 +68,20 @@ export const MapScreen = () => {
   const truckProfile = useTruckProfile();
   const saveTruckProfile = useSaveTruckProfile();
 
-  useProximityNotification(truckRoute.data ? destination : null);
+  useEffect(() => {
+    if (!truckRoute.data || bgPrimerAcknowledged) {
+      return;
+    }
+    Location.getBackgroundPermissionsAsync().then(({ status }) => {
+      if (status === 'undetermined') {
+        setShowBgPrimer(true);
+      } else {
+        setBgPrimerAcknowledged(true);
+      }
+    });
+  }, [truckRoute.data, bgPrimerAcknowledged]);
+
+  useProximityNotification(bgPrimerAcknowledged && truckRoute.data ? destination : null);
 
   const canSave = useMemo(
     () => Boolean(resolved && restrictions && truckRoute.data),
@@ -119,6 +149,20 @@ export const MapScreen = () => {
       });
     }
   }, [location, origin, slots, updateWaypoint]);
+
+  if (showLocationPrimer) {
+    return (
+      <PermissionPrimer
+        visible
+        title="Location access"
+        description="RouteRig uses your current location as the starting point for routes and to show it on the map. We only use it while you're using the app."
+        onContinue={() => {
+          setShowLocationPrimer(false);
+          setLocationPrimerAcknowledged(true);
+        }}
+      />
+    );
+  }
 
   if (errorMsg) {
     return (
@@ -213,8 +257,16 @@ export const MapScreen = () => {
 
       <SafeAreaView className="absolute bottom-0 left-0 right-0 gap-3 p-3" edges={['bottom']}>
         <View className="flex-row justify-between">
-          <IconButton name="bookmark" onPress={() => navigation.navigate('SavedRoutes')} />
-          <IconButton name="locate" onPress={() => mapRef.current?.animateToRegion(region, 500)} />
+          <IconButton
+            name="bookmark"
+            onPress={() => navigation.navigate('SavedRoutes')}
+            accessibilityLabel="Saved routes"
+          />
+          <IconButton
+            name="locate"
+            onPress={() => mapRef.current?.animateToRegion(region, 500)}
+            accessibilityLabel="Center map on current location"
+          />
         </View>
 
         <RouteSummaryCard
@@ -232,6 +284,16 @@ export const MapScreen = () => {
           }
         />
       </SafeAreaView>
+
+      <PermissionPrimer
+        visible={showBgPrimer}
+        title="Stay on track"
+        description="To alert you when you're getting close to your destination — even if RouteRig is in the background — we need 'Always' location access. You can skip this and still use the app without background alerts."
+        onContinue={() => {
+          setShowBgPrimer(false);
+          setBgPrimerAcknowledged(true);
+        }}
+      />
     </View>
   );
 };

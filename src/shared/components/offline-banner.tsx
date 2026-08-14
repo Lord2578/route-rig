@@ -9,7 +9,11 @@ export const OfflineBanner = () => {
   }
 
   return (
-    <View className="rounded-lg bg-red-500 px-3 py-2">
+    <View
+      className="rounded-lg bg-red-500 px-3 py-2"
+      accessibilityRole="alert"
+      accessibilityLiveRegion="polite"
+    >
       <Text className="text-center text-xs font-semibold text-white">No internet connection</Text>
     </View>
   );

@@ -30,6 +30,7 @@ export const WaypointRow = memo(function WaypointRow({ slot, placeholder, onUpda
           color="#F87171"
           className="h-8 w-8 items-center justify-center rounded-full border border-gray-600 bg-gray-800"
           onPress={() => onRemove(slot.id)}
+          accessibilityLabel={`Remove ${placeholder.toLowerCase()}`}
         />
       )}
     </View>
