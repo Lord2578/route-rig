@@ -1,5 +1,7 @@
 # RouteRig
 
+<img src="assets/icons/icon-main-1024.png" alt="RouteRig app icon" width="96" />
+
 A truck-aware route planner. Regular navigation apps route trucks the same way
 they route cars — ignoring height, weight, and length restrictions — which is
 how trucks end up stuck under low bridges. RouteRig plans routes that actually
@@ -8,6 +10,10 @@ route so the difference is visible.
 
 Built as a portfolio project to practice native module integration, the Expo
 dev client workflow, and clean feature-based architecture in React Native.
+
+## Screenshots
+
+![Map screen showing a truck route, car route, and the distance/duration comparison card](docs/screenshots/map-route-comparison.png)
 
 ## Features
 
