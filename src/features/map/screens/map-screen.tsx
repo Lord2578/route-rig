@@ -16,6 +16,7 @@ import { ROUTE_TYPE_COLOR } from '../../../shared/constants/route-colors';
 import { formatDistance, formatDuration } from '../../../shared/utils/format';
 import { useProximityNotification } from '../../notifications/hooks/use-proximity-notification';
 import { useSaveRoute } from '../../saved-routes/hooks/use-saved-routes';
+import { useUnitSystem } from '../../settings/hooks/use-unit-system';
 import { useSaveTruckProfile, useTruckProfile } from '../../truck-profile/hooks/use-truck-profile';
 import type { TruckRestrictions } from '../../route-planning/api/directions';
 import { RouteSummaryCard } from '../../route-planning/components/route-summary-card';
@@ -67,6 +68,7 @@ export const MapScreen = () => {
   const saveRoute = useSaveRoute();
   const truckProfile = useTruckProfile();
   const saveTruckProfile = useSaveTruckProfile();
+  const unitSystem = useUnitSystem().data ?? 'imperial';
 
   useEffect(() => {
     if (!truckRoute.data || bgPrimerAcknowledged) {
@@ -245,6 +247,7 @@ export const MapScreen = () => {
           onSubmit={handleSubmitRestrictions}
           disabled={truckRoute.isFetching || carRoute.isFetching}
           initialRestrictions={savedRoute?.restrictions ?? truckProfile.data ?? undefined}
+          unitSystem={unitSystem}
         />
 
         {(truckRoute.isFetching || carRoute.isFetching) && (
@@ -267,6 +270,11 @@ export const MapScreen = () => {
             onPress={() => mapRef.current?.animateToRegion(region, 500)}
             accessibilityLabel="Center map on current location"
           />
+          <IconButton
+            name="settings-outline"
+            onPress={() => navigation.navigate('Settings')}
+            accessibilityLabel="Settings"
+          />
         </View>
 
         <RouteSummaryCard
@@ -275,6 +283,7 @@ export const MapScreen = () => {
           selectedRouteType={selectedRouteType}
           onSelectRouteType={setSelectedRouteType}
           restrictions={restrictions}
+          unitSystem={unitSystem}
           isSaved={saveRoute.isSuccess}
           onSave={canSave ? handleSave : undefined}
           onShare={

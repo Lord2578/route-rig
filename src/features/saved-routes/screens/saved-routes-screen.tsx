@@ -2,32 +2,23 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { memo, useCallback } from 'react';
-import { Alert, FlatList, Linking, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, FlatList, Text, TouchableOpacity, View } from 'react-native';
 
 import type { RootStackParamList } from '../../../app/navigation/root-navigator';
+import { formatTruckRestrictions } from '../../../shared/utils/format';
+import type { UnitSystem } from '../../../shared/utils/units';
+import { useUnitSystem } from '../../settings/hooks/use-unit-system';
 import { useDeleteRoute, useSavedRoutes } from '../hooks/use-saved-routes';
 import type { SavedRoute } from '../types';
-
-const PRIVACY_POLICY_URL = 'https://lord2578.github.io/route-rig/privacy-policy.html';
-
-const PrivacyPolicyLink = () => (
-  <TouchableOpacity
-    className="items-center py-4"
-    onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}
-    accessibilityRole="link"
-    accessibilityLabel="Read the privacy policy"
-  >
-    <Text className="text-xs text-blue-400 underline">Privacy Policy</Text>
-  </TouchableOpacity>
-);
 
 type SavedRouteRowProps = {
   route: SavedRoute;
   onOpen: (route: SavedRoute) => void;
   onDelete: (route: SavedRoute) => void;
+  unitSystem: UnitSystem;
 };
 
-const SavedRouteRow = memo(function SavedRouteRow({ route, onOpen, onDelete }: SavedRouteRowProps) {
+const SavedRouteRow = memo(function SavedRouteRow({ route, onOpen, onDelete, unitSystem }: SavedRouteRowProps) {
   const stopCount = route.waypoints.length - 2;
 
   return (
@@ -44,8 +35,12 @@ const SavedRouteRow = memo(function SavedRouteRow({ route, onOpen, onDelete }: S
           {stopCount > 0 ? ` (+${stopCount} stop${stopCount > 1 ? 's' : ''})` : ''}
         </Text>
         <Text className="mt-1 text-xs text-gray-500">
-          {route.restrictions.heightMeters}m · {route.restrictions.weightTons}t ·{' '}
-          {route.restrictions.lengthMeters}m
+          {formatTruckRestrictions(
+            route.restrictions.heightMeters,
+            route.restrictions.weightTons,
+            route.restrictions.lengthMeters,
+            unitSystem
+          )}
         </Text>
       </View>
       <TouchableOpacity className="rounded-lg bg-red-600 px-3 py-2" onPress={() => onDelete(route)}>
@@ -59,6 +54,7 @@ export const SavedRoutesScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { data: routes } = useSavedRoutes();
   const deleteRoute = useDeleteRoute();
+  const unitSystem = useUnitSystem().data ?? 'imperial';
 
   const openRoute = useCallback(
     (route: SavedRoute) => {
@@ -89,7 +85,6 @@ export const SavedRoutesScreen = () => {
         <Text className="mt-1 text-center text-gray-500">
           Plan a route on the map and tap "Save this route" to see it here.
         </Text>
-        <PrivacyPolicyLink />
       </View>
     );
   }
@@ -99,8 +94,9 @@ export const SavedRoutesScreen = () => {
       className="flex-1 bg-gray-900"
       data={routes}
       keyExtractor={(item) => item.id}
-      renderItem={({ item }) => <SavedRouteRow route={item} onOpen={openRoute} onDelete={confirmDelete} />}
-      ListFooterComponent={PrivacyPolicyLink}
+      renderItem={({ item }) => (
+        <SavedRouteRow route={item} onOpen={openRoute} onDelete={confirmDelete} unitSystem={unitSystem} />
+      )}
     />
   );
 };

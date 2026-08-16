@@ -1,4 +1,5 @@
-import { formatDistance, formatDuration, formatRouteDelta } from './format';
+import { formatDistance, formatDuration, formatRouteDelta, formatTruckRestrictions } from './format';
+import { feetToMeters, lbsToTons } from './units';
 
 describe('formatDistance', () => {
   it('converts meters to kilometers with one decimal place', () => {
@@ -51,5 +52,17 @@ describe('formatRouteDelta', () => {
 
   it('handles a zero delta', () => {
     expect(formatRouteDelta(0, 0)).toBe('+0.0 km · +0 min vs car');
+  });
+});
+
+describe('formatTruckRestrictions', () => {
+  it('formats imperial units', () => {
+    expect(
+      formatTruckRestrictions(feetToMeters(13.5), lbsToTons(80000), feetToMeters(53), 'imperial')
+    ).toBe('13.5ft height · 80,000lbs weight · 53ft length');
+  });
+
+  it('formats metric units', () => {
+    expect(formatTruckRestrictions(4, 40, 16, 'metric')).toBe('4m height · 40t weight · 16m length');
   });
 });

@@ -2,7 +2,8 @@ import { memo } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 
 import { ROUTE_TYPE_COLOR } from '../../../shared/constants/route-colors';
-import { formatDistance, formatDuration, formatRouteDelta } from '../../../shared/utils/format';
+import { formatDistance, formatDuration, formatRouteDelta, formatTruckRestrictions } from '../../../shared/utils/format';
+import type { UnitSystem } from '../../../shared/utils/units';
 import type { RouteResult, TruckRestrictions } from '../api/directions';
 
 type RouteType = 'truck' | 'car';
@@ -18,6 +19,7 @@ type Props = {
   selectedRouteType: RouteType;
   onSelectRouteType: (type: RouteType) => void;
   restrictions: TruckRestrictions | null;
+  unitSystem: UnitSystem;
   onSave?: () => void;
   isSaved?: boolean;
   onShare?: () => void;
@@ -43,6 +45,7 @@ export const RouteSummaryCard = memo(
     selectedRouteType,
     onSelectRouteType,
     restrictions,
+    unitSystem,
     onSave,
     isSaved,
     onShare,
@@ -97,8 +100,13 @@ export const RouteSummaryCard = memo(
             )}
             {selectedRouteType === 'truck' && restrictions && (
               <Text className="text-xs text-gray-500">
-                Restrictions used: {restrictions.heightMeters}m height · {restrictions.weightTons}t weight ·{' '}
-                {restrictions.lengthMeters}m length
+                Restrictions used:{' '}
+                {formatTruckRestrictions(
+                  restrictions.heightMeters,
+                  restrictions.weightTons,
+                  restrictions.lengthMeters,
+                  unitSystem
+                )}
               </Text>
             )}
           </View>
