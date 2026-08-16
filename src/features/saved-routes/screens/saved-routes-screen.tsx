@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { memo, useCallback } from 'react';
-import { Alert, FlatList, Linking, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, FlatList, Text, TouchableOpacity, View } from 'react-native';
 
 import type { RootStackParamList } from '../../../app/navigation/root-navigator';
 import { formatTruckRestrictions } from '../../../shared/utils/format';
@@ -10,19 +10,6 @@ import type { UnitSystem } from '../../../shared/utils/units';
 import { useUnitSystem } from '../../settings/hooks/use-unit-system';
 import { useDeleteRoute, useSavedRoutes } from '../hooks/use-saved-routes';
 import type { SavedRoute } from '../types';
-
-const PRIVACY_POLICY_URL = 'https://lord2578.github.io/route-rig/privacy-policy.html';
-
-const PrivacyPolicyLink = () => (
-  <TouchableOpacity
-    className="items-center py-4"
-    onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}
-    accessibilityRole="link"
-    accessibilityLabel="Read the privacy policy"
-  >
-    <Text className="text-xs text-blue-400 underline">Privacy Policy</Text>
-  </TouchableOpacity>
-);
 
 type SavedRouteRowProps = {
   route: SavedRoute;
@@ -98,7 +85,6 @@ export const SavedRoutesScreen = () => {
         <Text className="mt-1 text-center text-gray-500">
           Plan a route on the map and tap "Save this route" to see it here.
         </Text>
-        <PrivacyPolicyLink />
       </View>
     );
   }
@@ -111,7 +97,6 @@ export const SavedRoutesScreen = () => {
       renderItem={({ item }) => (
         <SavedRouteRow route={item} onOpen={openRoute} onDelete={confirmDelete} unitSystem={unitSystem} />
       )}
-      ListFooterComponent={PrivacyPolicyLink}
     />
   );
 };

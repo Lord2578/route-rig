@@ -1,4 +1,4 @@
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Linking, Text, TouchableOpacity, View } from 'react-native';
 
 import type { UnitSystem } from '../../../shared/utils/units';
 import { useSaveUnitSystem, useUnitSystem } from '../hooks/use-unit-system';
@@ -7,6 +7,8 @@ const UNIT_OPTIONS: { value: UnitSystem; label: string }[] = [
   { value: 'imperial', label: 'Imperial (ft, lbs)' },
   { value: 'metric', label: 'Metric (m, t)' },
 ];
+
+const PRIVACY_POLICY_URL = 'https://lord2578.github.io/route-rig/privacy-policy.html';
 
 export const SettingsScreen = () => {
   const unitSystem = useUnitSystem();
@@ -36,6 +38,15 @@ export const SettingsScreen = () => {
       <Text className="text-xs text-gray-500">
         Applies to truck height, weight, and length everywhere in the app.
       </Text>
+
+      <TouchableOpacity
+        className="mt-4 items-center py-2"
+        onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}
+        accessibilityRole="link"
+        accessibilityLabel="Read the privacy policy"
+      >
+        <Text className="text-xs text-blue-400 underline">Privacy Policy</Text>
+      </TouchableOpacity>
     </View>
   );
 };
