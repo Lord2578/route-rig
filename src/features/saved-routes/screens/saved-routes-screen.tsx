@@ -5,6 +5,7 @@ import { memo, useCallback } from 'react';
 import { Alert, FlatList, Linking, Text, TouchableOpacity, View } from 'react-native';
 
 import type { RootStackParamList } from '../../../app/navigation/root-navigator';
+import { formatTruckRestrictions } from '../../../shared/utils/format';
 import { useDeleteRoute, useSavedRoutes } from '../hooks/use-saved-routes';
 import type { SavedRoute } from '../types';
 
@@ -44,8 +45,11 @@ const SavedRouteRow = memo(function SavedRouteRow({ route, onOpen, onDelete }: S
           {stopCount > 0 ? ` (+${stopCount} stop${stopCount > 1 ? 's' : ''})` : ''}
         </Text>
         <Text className="mt-1 text-xs text-gray-500">
-          {route.restrictions.heightMeters}m · {route.restrictions.weightTons}t ·{' '}
-          {route.restrictions.lengthMeters}m
+          {formatTruckRestrictions(
+            route.restrictions.heightMeters,
+            route.restrictions.weightTons,
+            route.restrictions.lengthMeters
+          )}
         </Text>
       </View>
       <TouchableOpacity className="rounded-lg bg-red-600 px-3 py-2" onPress={() => onDelete(route)}>
