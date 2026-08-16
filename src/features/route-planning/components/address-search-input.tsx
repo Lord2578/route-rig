@@ -62,6 +62,9 @@ export const AddressSearchInput = memo(function AddressSearchInput({
       {showResults && !isLoading && error instanceof Error && (
         <Text className="px-3 py-1 text-red-400">{error.message}</Text>
       )}
+      {showResults && !isLoading && !error && results && results.length === 0 && (
+        <Text className="px-3 py-1 text-gray-500">No results found.</Text>
+      )}
       {showResults && results && results.length > 0 && (
         <FlatList
           className="max-h-60 rounded-lg border border-gray-700 bg-gray-800"
