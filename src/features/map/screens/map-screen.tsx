@@ -122,6 +122,13 @@ export const MapScreen = () => {
     }
   }, [savedRoute, restrictions, truckProfile.data]);
 
+  useEffect(() => {
+    if (route.params?.applyTruckProfile) {
+      handleSubmitRestrictions(route.params.applyTruckProfile);
+      navigation.setParams({ applyTruckProfile: undefined });
+    }
+  }, [route.params?.applyTruckProfile, handleSubmitRestrictions, navigation]);
+
   const truckRouteState = useMemo(
     () => ({ data: truckRoute.data, error: truckRoute.error }),
     [truckRoute.data, truckRoute.error]
@@ -269,6 +276,11 @@ export const MapScreen = () => {
             name="locate"
             onPress={() => mapRef.current?.animateToRegion(region, 500)}
             accessibilityLabel="Center map on current location"
+          />
+          <IconButton
+            name="car-outline"
+            onPress={() => navigation.navigate('TruckProfiles')}
+            accessibilityLabel="Truck profiles"
           />
           <IconButton
             name="settings-outline"
