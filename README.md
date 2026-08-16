@@ -13,7 +13,9 @@ dev client workflow, and clean feature-based architecture in React Native.
 
 ## Screenshots
 
-![Map screen showing a truck route, car route, and the distance/duration comparison card](docs/screenshots/map-route-comparison.png)
+| Map + route comparison | Multi-stop route planning | Saved routes |
+| --- | --- | --- |
+| ![Map screen showing a truck route, car route, and the distance/duration comparison card](docs/screenshots/map-route-comparison.png) | ![Map screen with a stop added between origin and destination](docs/screenshots/map-waypoints.png) | ![Saved routes list](docs/screenshots/saved-routes.png) |
 
 ## Features
 
