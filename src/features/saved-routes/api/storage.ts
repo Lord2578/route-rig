@@ -5,14 +5,14 @@ import type { SavedRoute } from '../types';
 
 const STORAGE_KEY = 'routerig:saved-routes';
 
-type LegacyStoredRoute = Omit<SavedRoute, 'waypoints'> & {
+export type LegacyStoredRoute = Omit<SavedRoute, 'waypoints'> & {
   origin: GeocodeResult;
   destination: GeocodeResult;
 };
 
 type StoredRoute = SavedRoute | LegacyStoredRoute;
 
-function normalize(route: StoredRoute): SavedRoute {
+export function normalize(route: StoredRoute): SavedRoute {
   if ('waypoints' in route) {
     return route;
   }
