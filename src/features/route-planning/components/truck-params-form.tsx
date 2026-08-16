@@ -10,6 +10,7 @@ type Props = {
   disabled?: boolean;
   initialRestrictions?: TruckRestrictions;
   unitSystem: UnitSystem;
+  submitLabel?: string;
 };
 
 const toDisplay = (restrictions: TruckRestrictions, unitSystem: UnitSystem) => {
@@ -43,7 +44,13 @@ const FIELD_LABELS: Record<UnitSystem, { height: string; weight: string; length:
   metric: { height: 'Height (m)', weight: 'Weight (t)', length: 'Length (m)' },
 };
 
-export const TruckParamsForm = ({ onSubmit, disabled, initialRestrictions, unitSystem }: Props) => {
+export const TruckParamsForm = ({
+  onSubmit,
+  disabled,
+  initialRestrictions,
+  unitSystem,
+  submitLabel = 'Go',
+}: Props) => {
   const initial = initialRestrictions ? toDisplay(initialRestrictions, unitSystem) : null;
   const [height, setHeight] = useState(initial?.height ?? '');
   const [weight, setWeight] = useState(initial?.weight ?? '');
@@ -84,7 +91,7 @@ export const TruckParamsForm = ({ onSubmit, disabled, initialRestrictions, unitS
         disabled={!isValid || disabled}
         onPress={() => onSubmit(toMetric(Number(height), Number(weight), Number(length), unitSystem))}
       >
-        <Text className="font-semibold text-white">Go</Text>
+        <Text className="font-semibold text-white">{submitLabel}</Text>
       </TouchableOpacity>
     </View>
   );
