@@ -17,6 +17,14 @@ export type RootStackParamList = {
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
+const styledHeaderOptions = {
+  headerShown: true,
+  headerStyle: { backgroundColor: '#111827' },
+  headerShadowVisible: false,
+  headerTintColor: '#60A5FA',
+  headerTitleStyle: { color: '#FFFFFF', fontWeight: '700' as const },
+};
+
 export const RootNavigator = () => {
   return (
     <NavigationContainer theme={DarkTheme}>
@@ -25,24 +33,17 @@ export const RootNavigator = () => {
         <Stack.Screen
           name="SavedRoutes"
           component={SavedRoutesScreen}
-          options={{ headerShown: true, title: 'Saved Routes' }}
+          options={{ ...styledHeaderOptions, title: 'Saved Routes' }}
         />
         <Stack.Screen
           name="Settings"
           component={SettingsScreen}
-          options={{
-            headerShown: true,
-            title: 'Settings',
-            headerStyle: { backgroundColor: '#111827' },
-            headerShadowVisible: false,
-            headerTintColor: '#60A5FA',
-            headerTitleStyle: { color: '#FFFFFF', fontWeight: '700' },
-          }}
+          options={{ ...styledHeaderOptions, title: 'Settings' }}
         />
         <Stack.Screen
           name="TruckProfiles"
           component={TruckProfilesScreen}
-          options={{ headerShown: true, title: 'Truck Profiles' }}
+          options={{ ...styledHeaderOptions, title: 'Truck Profiles' }}
         />
       </Stack.Navigator>
     </NavigationContainer>
