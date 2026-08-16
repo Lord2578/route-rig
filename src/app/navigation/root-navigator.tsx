@@ -27,7 +27,14 @@ export const RootNavigator = () => {
         <Stack.Screen
           name="Settings"
           component={SettingsScreen}
-          options={{ headerShown: true, title: 'Settings' }}
+          options={{
+            headerShown: true,
+            title: 'Settings',
+            headerStyle: { backgroundColor: '#111827' },
+            headerShadowVisible: false,
+            headerTintColor: '#60A5FA',
+            headerTitleStyle: { color: '#FFFFFF', fontWeight: '700' },
+          }}
         />
       </Stack.Navigator>
     </NavigationContainer>
