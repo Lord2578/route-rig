@@ -1,4 +1,4 @@
-import { metersToFeet, tonsToLbs } from './units';
+import { metersToFeet, tonsToLbs, type UnitSystem } from './units';
 
 export function formatDistance(meters: number): string {
   return `${(meters / 1000).toFixed(1)} km`;
@@ -22,7 +22,15 @@ export function formatRouteDelta(deltaDistanceMeters: number, deltaDurationSecon
   )} vs car`;
 }
 
-export function formatTruckRestrictions(heightMeters: number, weightTons: number, lengthMeters: number): string {
+export function formatTruckRestrictions(
+  heightMeters: number,
+  weightTons: number,
+  lengthMeters: number,
+  unitSystem: UnitSystem
+): string {
+  if (unitSystem === 'metric') {
+    return `${heightMeters}m height · ${weightTons}t weight · ${lengthMeters}m length`;
+  }
   const heightFt = Math.round(metersToFeet(heightMeters) * 10) / 10;
   const weightLbs = Math.round(tonsToLbs(weightTons));
   const lengthFt = Math.round(metersToFeet(lengthMeters) * 10) / 10;

@@ -6,6 +6,8 @@ import { Alert, FlatList, Linking, Text, TouchableOpacity, View } from 'react-na
 
 import type { RootStackParamList } from '../../../app/navigation/root-navigator';
 import { formatTruckRestrictions } from '../../../shared/utils/format';
+import type { UnitSystem } from '../../../shared/utils/units';
+import { useUnitSystem } from '../../settings/hooks/use-unit-system';
 import { useDeleteRoute, useSavedRoutes } from '../hooks/use-saved-routes';
 import type { SavedRoute } from '../types';
 
@@ -26,9 +28,10 @@ type SavedRouteRowProps = {
   route: SavedRoute;
   onOpen: (route: SavedRoute) => void;
   onDelete: (route: SavedRoute) => void;
+  unitSystem: UnitSystem;
 };
 
-const SavedRouteRow = memo(function SavedRouteRow({ route, onOpen, onDelete }: SavedRouteRowProps) {
+const SavedRouteRow = memo(function SavedRouteRow({ route, onOpen, onDelete, unitSystem }: SavedRouteRowProps) {
   const stopCount = route.waypoints.length - 2;
 
   return (
@@ -48,7 +51,8 @@ const SavedRouteRow = memo(function SavedRouteRow({ route, onOpen, onDelete }: S
           {formatTruckRestrictions(
             route.restrictions.heightMeters,
             route.restrictions.weightTons,
-            route.restrictions.lengthMeters
+            route.restrictions.lengthMeters,
+            unitSystem
           )}
         </Text>
       </View>
@@ -63,6 +67,7 @@ export const SavedRoutesScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { data: routes } = useSavedRoutes();
   const deleteRoute = useDeleteRoute();
+  const unitSystem = useUnitSystem().data ?? 'imperial';
 
   const openRoute = useCallback(
     (route: SavedRoute) => {
@@ -103,7 +108,9 @@ export const SavedRoutesScreen = () => {
       className="flex-1 bg-gray-900"
       data={routes}
       keyExtractor={(item) => item.id}
-      renderItem={({ item }) => <SavedRouteRow route={item} onOpen={openRoute} onDelete={confirmDelete} />}
+      renderItem={({ item }) => (
+        <SavedRouteRow route={item} onOpen={openRoute} onDelete={confirmDelete} unitSystem={unitSystem} />
+      )}
       ListFooterComponent={PrivacyPolicyLink}
     />
   );

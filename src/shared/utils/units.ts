@@ -1,3 +1,5 @@
+export type UnitSystem = 'metric' | 'imperial';
+
 const METERS_PER_FOOT = 0.3048;
 const LBS_PER_METRIC_TON = 2204.6226218;
 
