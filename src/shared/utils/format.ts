@@ -14,14 +14,6 @@ export function formatDuration(seconds: number): string {
   return `${hours}h ${minutes}min`;
 }
 
-export function formatRouteDelta(deltaDistanceMeters: number, deltaDurationSeconds: number): string {
-  const distanceSign = deltaDistanceMeters >= 0 ? '+' : '−';
-  const durationSign = deltaDurationSeconds >= 0 ? '+' : '−';
-  return `${distanceSign}${formatDistance(Math.abs(deltaDistanceMeters))} · ${durationSign}${formatDuration(
-    Math.abs(deltaDurationSeconds)
-  )} vs car`;
-}
-
 export function formatTruckRestrictions(
   heightMeters: number,
   weightTons: number,

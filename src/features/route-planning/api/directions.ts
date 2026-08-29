@@ -11,10 +11,17 @@ export type RoutePoint = {
   longitude: number;
 };
 
+export type Maneuver = {
+  instruction: string;
+  distanceMeters: number;
+  waypointEndIndex: number;
+};
+
 export type RouteResult = {
   points: RoutePoint[];
   distanceMeters: number;
   durationSeconds: number;
+  maneuvers: Maneuver[];
 };
 
 type OrsDirectionsResponse = {
@@ -23,13 +30,18 @@ type OrsDirectionsResponse = {
       coordinates: [number, number][];
     };
     properties: {
-      segments: { distance: number; duration: number }[];
+      segments?: {
+        distance: number;
+        duration: number;
+        steps?: { instruction: string; distance: number; waypoints?: [number, number] }[];
+      }[];
     };
   }[];
 };
 
 type DirectionsRequestBody = {
   coordinates: [number, number][];
+  instructions: true;
   options?: {
     vehicle_type: string;
     profile_params: {
@@ -59,6 +71,7 @@ export function buildDirectionsRequestBody(
 
   return {
     coordinates: waypoints.map((waypoint) => [waypoint.longitude, waypoint.latitude]),
+    instructions: true,
     ...(options ? { options } : {}),
   };
 }
@@ -86,19 +99,37 @@ async function fetchRoute(
   }
 
   const data: OrsDirectionsResponse = await response.json();
-  const feature = data.features[0];
+  const feature = data.features?.[0];
+
+  if (!feature) {
+    throw new Error('No route found for the given waypoints.');
+  }
+
+  const segments = feature.properties.segments ?? [];
+
+  const maneuvers: Maneuver[] = segments.flatMap((segment) =>
+    (segment.steps ?? []).map((step) => ({
+      instruction: step.instruction,
+      distanceMeters: step.distance,
+      waypointEndIndex: step.waypoints?.[1] ?? 0,
+    }))
+  );
+
+  let distanceMeters = 0;
+  let durationSeconds = 0;
+  for (const segment of segments) {
+    distanceMeters += segment.distance;
+    durationSeconds += segment.duration;
+  }
 
   return {
     points: feature.geometry.coordinates.map(([longitude, latitude]) => ({ latitude, longitude })),
-    distanceMeters: feature.properties.segments.reduce((sum, segment) => sum + segment.distance, 0),
-    durationSeconds: feature.properties.segments.reduce((sum, segment) => sum + segment.duration, 0),
+    distanceMeters,
+    durationSeconds,
+    maneuvers,
   };
 }
 
 export function getTruckRoute(waypoints: GeocodeResult[], restrictions: TruckRestrictions): Promise<RouteResult> {
   return fetchRoute('driving-hgv', waypoints, restrictions);
-}
-
-export function getCarRoute(waypoints: GeocodeResult[]): Promise<RouteResult> {
-  return fetchRoute('driving-car', waypoints);
 }

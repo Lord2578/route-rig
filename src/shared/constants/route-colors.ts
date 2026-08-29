@@ -1,4 +1,1 @@
-export const ROUTE_TYPE_COLOR = {
-  truck: '#3B82F6',
-  car: '#FB923C',
-} as const;
+export const TRUCK_ROUTE_COLOR = '#3B82F6';
