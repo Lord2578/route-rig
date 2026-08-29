@@ -1,6 +1,6 @@
 # RouteRig — Domain Context
 
-RouteRig is a React Native (Expo) mobile app for truck drivers. It plans HGV-safe routes based on vehicle dimensions, compares them against a standard car route, and alerts the driver when approaching the destination.
+RouteRig is a React Native (Expo) mobile app for truck drivers. It plans HGV-safe routes based on vehicle dimensions, provides turn-by-turn navigation with route-deviation rerouting, and alerts the driver when approaching each waypoint.
 
 ---
 
@@ -27,7 +27,7 @@ Typed as `TruckRestrictions = { heightMeters, weightTons, lengthMeters }`. Alway
 Do not call these "dimensions", "parameters", or "specs" — always "restrictions".
 
 ### Truck route
-A route calculated by ORS using the `driving-hgv` profile with truck restrictions applied. Shown on the map in blue. The app always computes both truck and car routes simultaneously when waypoints are resolved.
+A route calculated by ORS using the `driving-hgv` profile with truck restrictions applied. Shown on the map in blue. The truck route is the only route the app computes when waypoints are resolved.
 
 ### Car route
 Removed. A driver cannot safely follow a car route with an HGV. The truck route is the only route computed and displayed.
@@ -103,7 +103,7 @@ A background push notification fired when the device is within ~500 m of the des
 
 - Truck restrictions are always stored in SI units; conversion to display units is UI-only.
 - A route can only be saved when waypoints are resolved, restrictions are set, and a truck route result exists.
-- The truck route is the only route the driver follows. The car route is not a navigable alternative and is being removed.
+- The truck route is the only route the driver follows. There is no car route.
 - Background location permission is only requested after a truck route is first computed.
 - Camera tracking, maneuver display, and deviation detection only operate while the app is in the foreground and a navigation session is active.
 - When the app is in the background during a navigation session, only proximity notifications continue.
