@@ -7,7 +7,7 @@ const stop: GeocodeResult = { label: 'Krakow', latitude: 50.0647, longitude: 19.
 
 describe('buildDirectionsRequestBody', () => {
   it('orders coordinates as [longitude, latitude], not [latitude, longitude]', () => {
-    const body = buildDirectionsRequestBody('driving-car', [origin, destination]);
+    const body = buildDirectionsRequestBody('driving-hgv', [origin, destination]);
 
     expect(body.coordinates).toEqual([
       [origin.longitude, origin.latitude],
@@ -16,7 +16,7 @@ describe('buildDirectionsRequestBody', () => {
   });
 
   it('includes an intermediate stop in coordinate order', () => {
-    const body = buildDirectionsRequestBody('driving-car', [origin, stop, destination]);
+    const body = buildDirectionsRequestBody('driving-hgv', [origin, stop, destination]);
 
     expect(body.coordinates).toEqual([
       [origin.longitude, origin.latitude],
@@ -25,10 +25,10 @@ describe('buildDirectionsRequestBody', () => {
     ]);
   });
 
-  it('omits options entirely for a car route', () => {
-    const body = buildDirectionsRequestBody('driving-car', [origin, destination]);
+  it('always includes instructions: true so ORS returns segments', () => {
+    const body = buildDirectionsRequestBody('driving-hgv', [origin, destination]);
 
-    expect(body.options).toBeUndefined();
+    expect(body.instructions).toBe(true);
   });
 
   it('omits options for a truck route with no restrictions provided', () => {
